@@ -1,0 +1,7 @@
+**/__pypackages__/
+**/__pycache__/
+/build/
+/venv/
+.pdm-python
+result
+result-*

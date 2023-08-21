@@ -1,0 +1,36 @@
+[tasks]
+bmc
+cover
+prove
+
+[options]
+bmc: mode bmc
+cover: mode cover
+prove: mode prove
+depth 30
+multiclock on
+
+[engines]
+bmc: smtbmc z3
+cover: smtbmc z3
+prove: smtbmc z3
+
+[script]
+read_verilog <<END
+module \$dff (CLK, D, Q);
+  parameter WIDTH = 0;
+  parameter CLK_POLARITY = 1'b1;
+  input CLK;
+  input [WIDTH-1:0] D;
+  output reg [WIDTH-1:0] Q;
+  \$ff #(.WIDTH(WIDTH)) _TECHMAP_REPLACE_ (.D(D),.Q(Q));
+endmodule
+END
+design -stash dff2ff
+read_ilang i2c_obs.il
+proc
+techmap -map %dff2ff formal_top/w:clk %co*
+prep -top formal_top
+
+[files]
+build/i2c_obs.il

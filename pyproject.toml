@@ -1,0 +1,33 @@
+
+[project]
+name = "i2c_obs"
+version = "0.0"
+description = ""
+authors = [
+    {name = "Charlotte", email = "charlotte@lottia.net"},
+]
+dependencies = [
+    "amaranth >= 0.4.0dev0, < 0.6",
+]
+requires-python = ">=3.8"
+license = {text = "BSD-2-Clause"}
+
+[project.optional-dependencies]
+build = [
+    "amaranth-boards",
+]
+
+[tool.setuptools]
+packages = ["i2c_obs"]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+ignore = ["result"]
+extraPaths = ["../amaranth"]
+reportUnknownMemberType = false
+reportInconsistentConstructor = false
+reportMissingTypeStubs = false
+reportUnknownVariableType = false
+reportUnknownLambdaType = false
+reportUnknownArgumentType = false
+reportGeneralTypeIssues = false
