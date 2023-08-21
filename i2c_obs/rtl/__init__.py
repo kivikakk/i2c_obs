@@ -2,7 +2,7 @@ from typing import Final, Optional, cast
 
 from amaranth import Elaboratable, Module, Signal
 from amaranth.build import Attrs
-from amaranth.hdl.ast import Assert
+from amaranth.hdl.ast import Assert, Display
 from amaranth.lib.wiring import Component, In, Out
 from amaranth_boards.resources import I2CResource
 
@@ -120,6 +120,7 @@ class Top(Component):
                 m.d.sync += measured_count.eq(measured_count + 1)
                 with m.If(self.scl_i != scl_last):
                     m.d.comb += Assert(self.scl_i)
+                    m.d.sync += Display("{0:d}", measured_count)
                     m.next = "MEASURE: FISH"
 
             with m.State("MEASURE: FISH"):

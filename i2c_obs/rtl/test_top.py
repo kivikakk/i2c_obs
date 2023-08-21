@@ -15,6 +15,9 @@ class TestTop(sim.TestCase):
         yield
         yield
         yield
+        yield
+        yield
+        yield
         yield dut.scl_i.eq(1)
         yield
         yield
