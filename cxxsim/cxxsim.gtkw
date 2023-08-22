@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.115 (w)1999-2023 BSI
-[*] Tue Aug 22 02:50:19 2023
+[*] Tue Aug 22 03:22:56 2023
 [*]
 [dumpfile] "/home/charlotte/s/i2c_obs/cxxsim/cxxsim.vcd"
-[dumpfile_mtime] "Tue Aug 22 02:49:36 2023"
-[dumpfile_size] 2378
+[dumpfile_mtime] "Tue Aug 22 03:22:37 2023"
+[dumpfile_size] 2647
 [savefile] "/home/charlotte/s/i2c_obs/cxxsim/cxxsim.gtkw"
 [timestart] 0
 [size] 1000 600
 [pos] -1 -1
-*-0.831358 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-3.027598 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 284
 [signals_width] 222
 [sst_expanded] 1
