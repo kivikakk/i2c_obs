@@ -106,8 +106,10 @@ class Top(Component):
                 button_up = self.switch
 
         # Not stretching by default.
-        m.d.comb += self.scl_o.eq(0)
-        m.d.sync += self.scl_oe.eq(0)
+        m.d.comb += [
+            self.scl_o.eq(0),
+            self.scl_oe.eq(0),
+        ]
 
         scl_last = Signal()
         m.d.sync += scl_last.eq(self.scl_i)
@@ -126,7 +128,7 @@ class Top(Component):
             with m.State("IDLE"):
                 with m.If(button_up):
                     m.d.sync += [
-                        uart.wr_data.eq(0xff),
+                        uart.wr_data.eq(0xFF),
                         uart.wr_en.eq(1),
                     ]
                     m.next = "MEASURE: PRE"
@@ -150,25 +152,20 @@ class Top(Component):
                     m.next = "FISH"
 
             with m.State("HIGH: WAIT"):
-                # Falling edge on SCL, hold it low ourselves
-                # for (measured_count*2)-1.
+                # Falling edge on SCL, hold it low ourselves for an extra whole period.
                 with m.If(self.scl_i != scl_last):
                     if platform.simulation:
                         m.d.comb += Assert(~self.scl_i)
-                    m.d.sync += [
-                        timer_count.eq((measured_count * 2) - 1),
-                        self.scl_oe.eq(1),
-                    ]
+                    m.d.sync += timer_count.eq(2 * measured_count - 1)
                     m.next = "LOW: HOLD"
                 with m.If(button_up):
                     m.next = "FISH"
 
             with m.State("LOW: HOLD"):
+                m.d.comb += self.scl_oe.eq(1)
                 m.d.sync += timer_count.eq(timer_count - 1)
                 with m.If(timer_count == 0):
                     m.next = "LOW: FINISHED HOLD"
-                with m.Else():
-                    m.d.sync += self.scl_oe.eq(1)
                 with m.If(button_up):
                     m.next = "FISH"
 
@@ -180,7 +177,7 @@ class Top(Component):
 
             with m.State("FISH"):
                 m.d.sync += [
-                    uart.wr_data.eq(0xfe),
+                    uart.wr_data.eq(0xFE),
                     uart.wr_en.eq(1),
                 ]
                 m.next = "IDLE"
