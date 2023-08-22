@@ -21,6 +21,7 @@ class Top(Component):
     DEFAULT_SPEED: Final[int] = 400_000
 
     switch: In(1)
+    led: Out(1)
     scl_oe: Out(1)
     scl_o: Out(1)
     scl_i: In(1)
@@ -46,9 +47,14 @@ class Top(Component):
         m.d.comb += m.submodules.button.i.eq(self.switch)
         button_up = m.submodules.button.up
 
+        # I've removed the pull-up resistors here since they should
+        # be provided by the controller.
         match platform:
             case icebreaker():
-                m.d.comb += self.switch.eq(platform.request("button").i)
+                m.d.comb += [
+                    self.switch.eq(platform.request("button").i),
+                    self.led.eq(platform.request("led").o),
+                ]
                 platform.add_resources(
                     [
                         I2CResource(
@@ -56,7 +62,7 @@ class Top(Component):
                             scl="1",
                             sda="2",
                             conn=("pmod", 0),
-                            attrs=Attrs(IO_STANDARD="SB_LVCMOS", PULLUP=1),
+                            attrs=Attrs(IO_STANDARD="SB_LVCMOS"),
                         )
                     ]
                 )
@@ -68,7 +74,10 @@ class Top(Component):
                 ]
 
             case orangecrab():
-                m.d.comb += self.switch.eq(platform.request("button").i)
+                m.d.comb += [
+                    self.switch.eq(platform.request("button").i),
+                    self.led.eq(platform.request("led").o),
+                ]
                 platform.add_resources(
                     [
                         I2CResource(
@@ -76,7 +85,7 @@ class Top(Component):
                             scl="scl",
                             sda="sda",
                             conn=("io", 0),
-                            attrs=Attrs(IO_TYPE="LVCMOS33", PULLMODE="UP"),
+                            attrs=Attrs(IO_TYPE="LVCMOS33"),
                         )
                     ]
                 )
@@ -97,6 +106,7 @@ class Top(Component):
                 button_up = self.switch
 
         # Not stretching by default.
+        m.d.comb += self.scl_o.eq(0)
         m.d.sync += self.scl_oe.eq(0)
 
         scl_last = Signal()
@@ -105,8 +115,10 @@ class Top(Component):
         freq = cast(int, platform.default_clk_frequency)
         counter_max = int(freq // 100_000) + 1
         measured_count = Signal(range(counter_max))
+        timer_count = Signal(len(measured_count) * 2)
 
-        with m.FSM():
+        with m.FSM() as fsm:
+            m.d.comb += self.led.eq(~fsm.ongoing("IDLE"))
             with m.State("IDLE"):
                 with m.If(button_up):
                     m.next = "MEASURE: PRE"
@@ -122,9 +134,29 @@ class Top(Component):
                     if platform.simulation:
                         m.d.comb += Assert(self.scl_i)
                         m.d.sync += Display("Measured count: {0:d}", measured_count)
-                    m.next = "MEASURE: FISH"
+                    m.next = "HIGH: WAIT"
 
-            with m.State("MEASURE: FISH"):
-                m.next = "IDLE"
+            with m.State("HIGH: WAIT"):
+                # Falling edge on SCL, hold it low ourselves
+                # for (measured_count*2)-1.
+                with m.If(self.scl_i != scl_last):
+                    if platform.simulation:
+                        m.d.comb += Assert(~self.scl_i)
+                    m.d.sync += [
+                        timer_count.eq((measured_count*2)-1),
+                        self.scl_oe.eq(1),
+                    ]
+                    m.next = "LOW: HOLD"
+
+            with m.State("LOW: HOLD"):
+                m.d.sync += timer_count.eq(timer_count - 1)
+                with m.If(timer_count == 0):
+                    m.next = "LOW: FINISHED HOLD"
+                with m.Else():
+                    m.d.sync += self.scl_oe.eq(1)
+
+            with m.State("LOW: FINISHED HOLD"):
+                with m.If(self.scl_i):
+                    m.next = "HIGH: WAIT"
 
         return m
