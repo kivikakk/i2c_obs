@@ -53,7 +53,7 @@ class Top(Component):
             case icebreaker():
                 m.d.comb += [
                     self.switch.eq(platform.request("button").i),
-                    self.led.eq(platform.request("led").o),
+                    platform.request("led").o.eq(self.led),
                 ]
                 platform.add_resources(
                     [
@@ -76,7 +76,7 @@ class Top(Component):
             case orangecrab():
                 m.d.comb += [
                     self.switch.eq(platform.request("button").i),
-                    self.led.eq(platform.request("led").o),
+                    platform.request("led").o.eq(self.led),
                 ]
                 platform.add_resources(
                     [
@@ -117,46 +117,52 @@ class Top(Component):
         measured_count = Signal(range(counter_max))
         timer_count = Signal(len(measured_count) * 2)
 
-        with m.FSM() as fsm:
-            m.d.comb += self.led.eq(~fsm.ongoing("IDLE"))
-            with m.State("IDLE"):
-                with m.If(button_up):
-                    m.next = "MEASURE: PRE"
+        en = Signal()
+        m.d.comb += self.led.eq(en)
 
-            with m.State("MEASURE: PRE"):
-                with m.If(~self.scl_i & (self.scl_i != scl_last)):
-                    m.d.sync += measured_count.eq(0)
-                    m.next = "MEASURE: COUNT"
+        with m.If(~en):
+            with m.If(button_up):
+                m.d.sync += en.eq(1)
 
-            with m.State("MEASURE: COUNT"):
-                m.d.sync += measured_count.eq(measured_count + 1)
-                with m.If(self.scl_i != scl_last):
-                    if platform.simulation:
-                        m.d.comb += Assert(self.scl_i)
-                        m.d.sync += Display("Measured count: {0:d}", measured_count)
-                    m.next = "HIGH: WAIT"
+        with m.Else():
+            with m.If(button_up):
+                m.d.sync += en.eq(0)
 
-            with m.State("HIGH: WAIT"):
-                # Falling edge on SCL, hold it low ourselves
-                # for (measured_count*2)-1.
-                with m.If(self.scl_i != scl_last):
-                    if platform.simulation:
-                        m.d.comb += Assert(~self.scl_i)
-                    m.d.sync += [
-                        timer_count.eq((measured_count*2)-1),
-                        self.scl_oe.eq(1),
-                    ]
-                    m.next = "LOW: HOLD"
+            with m.FSM():
+                with m.State("MEASURE: PRE"):
+                    with m.If(~self.scl_i & (self.scl_i != scl_last)):
+                        m.d.sync += measured_count.eq(0)
+                        m.next = "MEASURE: COUNT"
 
-            with m.State("LOW: HOLD"):
-                m.d.sync += timer_count.eq(timer_count - 1)
-                with m.If(timer_count == 0):
-                    m.next = "LOW: FINISHED HOLD"
-                with m.Else():
-                    m.d.sync += self.scl_oe.eq(1)
+                with m.State("MEASURE: COUNT"):
+                    m.d.sync += measured_count.eq(measured_count + 1)
+                    with m.If(self.scl_i != scl_last):
+                        if platform.simulation:
+                            m.d.comb += Assert(self.scl_i)
+                            m.d.sync += Display("Measured count: {0:d}", measured_count)
+                        m.next = "HIGH: WAIT"
 
-            with m.State("LOW: FINISHED HOLD"):
-                with m.If(self.scl_i):
-                    m.next = "HIGH: WAIT"
+                with m.State("HIGH: WAIT"):
+                    # Falling edge on SCL, hold it low ourselves
+                    # for (measured_count*2)-1.
+                    with m.If(self.scl_i != scl_last):
+                        if platform.simulation:
+                            m.d.comb += Assert(~self.scl_i)
+                        m.d.sync += [
+                            timer_count.eq((measured_count*2)-1),
+                            self.scl_oe.eq(1),
+                        ]
+                        m.next = "LOW: HOLD"
+
+                with m.State("LOW: HOLD"):
+                    m.d.sync += timer_count.eq(timer_count - 1)
+                    with m.If(timer_count == 0):
+                        m.next = "LOW: FINISHED HOLD"
+                    with m.Else():
+                        m.d.sync += self.scl_oe.eq(1)
+
+                with m.State("LOW: FINISHED HOLD"):
+                    with m.If(self.scl_i):
+                        m.next = "HIGH: WAIT"
 
         return m
