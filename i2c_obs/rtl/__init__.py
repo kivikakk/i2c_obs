@@ -119,8 +119,9 @@ class Top(Component):
             with m.State("MEASURE: COUNT"):
                 m.d.sync += measured_count.eq(measured_count + 1)
                 with m.If(self.scl_i != scl_last):
-                    m.d.comb += Assert(self.scl_i)
-                    m.d.sync += Display("Measured count: {0:d}", measured_count)
+                    if platform.simulation:
+                        m.d.comb += Assert(self.scl_i)
+                        m.d.sync += Display("Measured count: {0:d}", measured_count)
                     m.next = "MEASURE: FISH"
 
             with m.State("MEASURE: FISH"):

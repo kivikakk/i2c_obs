@@ -44,6 +44,8 @@ class orangecrab(OrangeCrabR0_2_85FPlatform, Platform):
 
 
 class cxxsim(Platform):
+    simulation = True
+
     @property
     def default_clk_frequency(self):
         return 3_000_000
