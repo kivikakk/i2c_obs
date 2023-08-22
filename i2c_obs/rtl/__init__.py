@@ -6,7 +6,7 @@ from amaranth.hdl.ast import Assert, Display
 from amaranth.lib.wiring import Component, In, Out
 from amaranth_boards.resources import I2CResource
 
-from ..platform import Platform, icebreaker, orangecrab, test
+from ..platform import Platform, icebreaker, orangecrab, test, cxxsim
 from .common import ButtonWithHold, Hz
 
 __all__ = ["Top"]
@@ -93,8 +93,8 @@ class Top(Component):
             case test():
                 button_up = self.switch
 
-            case _:
-                raise NotImplementedError
+            case cxxsim():
+                button_up = self.switch
 
         # Not stretching by default.
         m.d.sync += self.scl_oe.eq(0)
@@ -120,7 +120,7 @@ class Top(Component):
                 m.d.sync += measured_count.eq(measured_count + 1)
                 with m.If(self.scl_i != scl_last):
                     m.d.comb += Assert(self.scl_i)
-                    m.d.sync += Display("{0:d}", measured_count)
+                    m.d.sync += Display("Measured count: {0:d}", measured_count)
                     m.next = "MEASURE: FISH"
 
             with m.State("MEASURE: FISH"):

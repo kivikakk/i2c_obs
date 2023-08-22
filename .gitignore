@@ -5,3 +5,4 @@
 .pdm-python
 result
 result-*
+*.vcd

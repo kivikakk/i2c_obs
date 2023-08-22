@@ -2,7 +2,7 @@ import warnings
 from argparse import ArgumentParser
 from os import makedirs
 
-from . import build, formal, test
+from . import build, formal, test, cxxsim
 from .base import path
 
 warnings.simplefilter("default")
@@ -15,7 +15,13 @@ subparsers = parser.add_subparsers(required=True)
 test.add_main_arguments(
     subparsers.add_parser(
         "test",
-        help="run the unit tests and sim tests",
+        help="run the unit tests",
+    )
+)
+cxxsim.add_main_arguments(
+    subparsers.add_parser(
+        "cxxsim",
+        help="run the C++ simulator tests",
     )
 )
 formal.add_main_arguments(

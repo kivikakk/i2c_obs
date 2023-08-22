@@ -32,55 +32,24 @@ class PlatformRegistry(ABCMeta):
 
 
 class Platform(metaclass=PlatformRegistry):
-    @property
-    @abstractmethod
-    def flash_rom_base(self) -> int:
-        ...
-
-    def flash_rom(self, path: Path) -> None:
-        raise NotImplementedError()
-
     simulation = False
 
 
 class icebreaker(ICEBreakerPlatform, Platform):
-    @property
-    def flash_rom_base(self) -> int:
-        return 0x80_0000
-
-    def flash_rom(self, path: Path):
-        iceprog = os.environ.get("ICEPROG", "iceprog")
-        subprocess.run(
-            [iceprog, "-o", hex(self.flash_rom_base), path],
-            check=True,
-        )
+    pass
 
 
 class orangecrab(OrangeCrabR0_2_85FPlatform, Platform):
-    @property
-    def flash_rom_base(self) -> int:
-        return 0x10_0000
-
-    def flash_rom(self, path: Path):
-        dfu_util = os.environ.get("DFU_UTIL", "dfu-util")
-        subprocess.run([dfu_util, "-a 1", "-D", path], check=True)
+    pass
 
 
-class vsh(Platform):
-    @property
-    def flash_rom_base(self) -> int:
-        return 0xAB_CDEF
-
+class cxxsim(Platform):
     @property
     def default_clk_frequency(self):
         return 3_000_000
 
 
 class test(Platform):
-    @property
-    def flash_rom_base(self) -> int:
-        return 0x00_CAFE
-
     simulation = True
 
     @property
