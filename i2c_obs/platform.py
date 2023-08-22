@@ -1,7 +1,4 @@
-import os
-import subprocess
-from abc import ABCMeta, abstractmethod
-from pathlib import Path
+from abc import ABCMeta
 from typing import Any, ClassVar, Self, Type
 
 from amaranth.build import Platform as AmaranthPlatform

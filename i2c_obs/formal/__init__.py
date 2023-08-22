@@ -2,7 +2,7 @@ import subprocess
 from argparse import ArgumentParser, Namespace
 from typing import Tuple
 
-from amaranth import ClockSignal, Module, ResetSignal, Signal, Value
+from amaranth import Module, Signal, Value
 from amaranth.back import rtlil
 
 from ..base import path

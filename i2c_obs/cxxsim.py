@@ -84,10 +84,8 @@ def main(args: Namespace):
         ports=design.ports(platform),
     )
 
-    main_cc_path = path("cxxsim/main.cc")
-
     cc_o_paths = {
-        path("cxxsim/main.cc"): "build/main.o",    
+        path("cxxsim/main.cc"): "build/main.o",
     }
 
     for cc_path, o_path in cc_o_paths.items():
@@ -106,13 +104,16 @@ def main(args: Namespace):
         )
 
     exe_o_path = path("build/cxxsim")
-    subprocess.run([
-        "c++",
-        *(["-O3"] if args.optimize.opt_rtl else []),
-        *cc_o_paths.values(),
-        "-o",
-        exe_o_path,
-    ], check=True)
+    subprocess.run(
+        [
+            "c++",
+            *(["-O3"] if args.optimize.opt_rtl else []),
+            *cc_o_paths.values(),
+            "-o",
+            exe_o_path,
+        ],
+        check=True,
+    )
 
     if not args.compile:
         cmd = [exe_o_path]

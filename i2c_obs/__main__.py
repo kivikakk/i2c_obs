@@ -2,7 +2,7 @@ import warnings
 from argparse import ArgumentParser
 from os import makedirs
 
-from . import build, formal, test, cxxsim
+from . import build, cxxsim, formal, test
 from .base import path
 
 warnings.simplefilter("default")
