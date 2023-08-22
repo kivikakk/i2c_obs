@@ -126,7 +126,7 @@ class Top(Component):
             with m.State("IDLE"):
                 with m.If(button_up):
                     m.d.sync += [
-                        uart.wr_data.eq(ord("<")),
+                        uart.wr_data.eq(0xff),
                         uart.wr_en.eq(1),
                     ]
                     m.next = "MEASURE: PRE"
@@ -180,16 +180,16 @@ class Top(Component):
 
             with m.State("FISH"):
                 m.d.sync += [
-                    uart.wr_data.eq(ord(">")),
+                    uart.wr_data.eq(0xfe),
                     uart.wr_en.eq(1),
                 ]
                 m.next = "IDLE"
 
         with m.If(measured_count_report != 0):
             m.d.sync += [
-                uart.wr_data.eq(measured_count_report[:8]),
+                uart.wr_data.eq(measured_count_report[:4]),
                 uart.wr_en.eq(1),
-                measured_count_report.eq(measured_count_report >> 8),
+                measured_count_report.eq(measured_count_report >> 4),
             ]
 
         return m
