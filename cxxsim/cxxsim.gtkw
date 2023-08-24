@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.115 (w)1999-2023 BSI
-[*] Tue Aug 22 03:45:39 2023
+[*] Thu Aug 24 12:28:14 2023
 [*]
 [dumpfile] "/home/charlotte/s/i2c_obs/cxxsim/cxxsim.vcd"
-[dumpfile_mtime] "Tue Aug 22 03:45:17 2023"
-[dumpfile_size] 3386
+[dumpfile_mtime] "Thu Aug 24 12:26:25 2023"
+[dumpfile_size] 7951
 [savefile] "/home/charlotte/s/i2c_obs/cxxsim/cxxsim.gtkw"
-[timestart] 0
+[timestart] 140737488297952
 [size] 2516 1393
-[pos] -27 -24
-*-2.621852 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-2.598006 140737488297983 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 284
 [signals_width] 222
 [sst_expanded] 1
@@ -18,14 +18,12 @@
 button.button_down
 button.button_up
 clk
-@22
-measured_count[4:0]
-@28
 rst
 scl_i
 scl_last
 scl_o
 scl_oe
 switch
+fsm_state[2:0]
 [pattern_trace] 1
 [pattern_trace] 0

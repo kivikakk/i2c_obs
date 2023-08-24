@@ -1,3 +1,5 @@
+from amaranth.sim import Settle
+
 from .. import sim
 from . import Top
 
@@ -22,15 +24,16 @@ class TestTop(sim.TestCase):
             yield
 
             yield dut.scl_i.eq(1)
-            yield
             actual = 0
             while (yield dut.scl_oe):
                 actual += 1
                 yield
+                yield Settle()
             self.assertEqual(
                 actual,
                 expected,
                 f"ix {ix} expected {expected} stretched cycles, got {actual}",
             )
+            yield
             yield
             yield
