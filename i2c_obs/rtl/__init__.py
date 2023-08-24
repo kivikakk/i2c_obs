@@ -1,6 +1,6 @@
 from typing import Final, cast
 
-from amaranth import Elaboratable, Module, Signal
+from amaranth import Array, Elaboratable, Module, Mux, Signal
 from amaranth.build import Attrs
 from amaranth.hdl.ast import Assert, Display
 from amaranth.lib.wiring import Component, In, Out
@@ -117,9 +117,26 @@ class Top(Component):
         freq = cast(int, platform.default_clk_frequency)
         counter_max = int(freq // 100_000) + 1
         measured_count = Signal(range(counter_max))
-        timer_count = Signal(len(measured_count) * 2)
+        timer_count = Signal(len(measured_count) * 2)  # XXX
 
-        measured_count_report = Signal.like(measured_count)
+        # Measurement starts at 1 in the cycle we see SCL drop, and is
+        # incremented every cycle thereafter as long as SCL is stable;
+        # repeat for 3 consecutive measurements (i.e. low-high-low).
+        #
+        #       |      |      |      |      |      |      |      |      |      |
+        # ___   |      |      |     _|______|______|___   |      |      |     _|
+        #    \  |      |      |    / |      |      |   \  |      |      |    / |
+        #     \_|______|______|___/  |      |      |    \_|______|______|___/  |
+        #       |      |      |      |      |      |      |      |      |      |
+        #        a1     a2     a3     b1     b2     b3     c1     c2     c3
+        N_MEASUREMENTS = 3
+        measurements = Array(
+            [Signal(range(counter_max)) for _ in range(N_MEASUREMENTS)]
+        )
+        measure_ix = Signal(range(N_MEASUREMENTS))
+        measures_sent = Signal(range(N_MEASUREMENTS))
+        measured_count_report = Signal.like(measurements[0])
+
         m.d.sync += uart.wr_en.eq(0)
 
         with m.FSM() as fsm:
@@ -131,40 +148,47 @@ class Top(Component):
                         uart.wr_data.eq(symbols.STRETCH_START),
                         uart.wr_en.eq(1),
                     ]
-                    m.next = "MEASURE: PRE"
+                    m.next = "TRAINING: WAIT"
 
-            with m.State("MEASURE: PRE"):
-                with m.If(~self.scl_i & (self.scl_i != scl_last)):
-                    # Measurement starts at 1 in the cycle we see SCL drop,
-                    # and is incremented every cycle thereafter as long as
-                    # SCL is stable.
-                    #
-                    #       |      |      |      |
-                    # ___   |      |      |     _|
-                    #    \  |      |      |    / |
-                    #     \_|______|______|___/  |
-                    #       |      |      |      |
-                    #        =1     =2     =3      3
-                    m.d.sync += measured_count.eq(1)
-                    m.next = "MEASURE: COUNT"
+            with m.State("TRAINING: WAIT"):
+                # Falling edge.
+                with m.If(scl_last & ~self.scl_i):
+                    m.d.sync += [
+                        measures_sent.eq(0),
+                        measure_ix.eq(0),
+                        *(m.eq(1) for m in measurements),
+                    ]
+                    m.next = "TRAINING: COUNT"
                 with m.If(button_up):
                     m.next = "FISH"
 
-            with m.State("MEASURE: COUNT"):
+            with m.State("TRAINING: COUNT"):
                 with m.If(self.scl_i == scl_last):
-                    m.d.sync += measured_count.eq(measured_count + 1)
+                    m.d.sync += measurements[measure_ix].eq(
+                        measurements[measure_ix] + 1
+                    )
                 with m.Else():
+                    m.d.sync += measured_count_report.eq(measurements[measure_ix])
                     if platform.simulation:
-                        m.d.comb += Assert(self.scl_i)
-                        m.d.sync += Display("Measured count: {0:d}", measured_count)
-                    m.d.sync += measured_count_report.eq(measured_count)
-                    m.next = "HIGH: WAIT"
+                        m.d.comb += Assert(
+                            Mux(measure_ix[0] == 0, self.scl_i, ~self.scl_i)
+                        )
+                        # XXX This does things I truly do not anticipate in cxxsim.
+                        m.d.sync += Display(
+                            "measurement #{0:d} count: {1:d}",
+                            measure_ix,
+                            measurements[measure_ix],
+                        )
+                    with m.If(measure_ix == N_MEASUREMENTS - 1):
+                        m.next = "STRETCH: WAIT"
+                    with m.Else():
+                        m.d.sync += measure_ix.eq(measure_ix + 1)
                 with m.If(button_up):
                     m.next = "FISH"
 
-            with m.State("HIGH: WAIT"):
+            with m.State("STRETCH: WAIT"):
                 # Stretching counting starts when we detect SCL go low: we
-                # record the number of additional cycles to be held after this
+                # register the number of additional cycles to be held after this
                 # one, which will equal zero on the cycle we need to relax.
                 #
                 #       |      |      |      |      |      |      |
@@ -176,10 +200,11 @@ class Top(Component):
                 #
                 # The initial value is therefore the desired tLOW cycle count
                 # minus two.
-                with m.If(self.scl_i != scl_last):
-                    if platform.simulation:
-                        m.d.comb += Assert(~self.scl_i)
-                    m.d.sync += timer_count.eq(2 * measured_count - 2)
+                #
+                # I'm choosing the sum of measurements[0]+[1] as the desired cycle count:
+                # this lets SCL rise at exactly the time it'd normally next fall.
+                with m.If(scl_last & ~self.scl_i):
+                    m.d.sync += timer_count.eq(sum(measurements[:2]) - 2)
                     m.next = "LOW: HOLD"
                 with m.If(button_up):
                     m.next = "FISH"
@@ -194,7 +219,7 @@ class Top(Component):
 
             with m.State("LOW: FINISHED HOLD"):
                 with m.If(self.scl_i):
-                    m.next = "HIGH: WAIT"
+                    m.next = "STRETCH: WAIT"
                 with m.If(button_up):
                     m.next = "FISH"
 
@@ -218,6 +243,9 @@ class Top(Component):
             m.d.sync += [
                 uart.wr_data.eq(symbols.STRETCH_MEASURED),
                 uart.wr_en.eq(1),
+                measures_sent.eq(measures_sent + 1),
             ]
+            with m.If(measures_sent == N_MEASUREMENTS - 1):
+                m.d.sync += writing_measured_count.eq(1)
 
         return m

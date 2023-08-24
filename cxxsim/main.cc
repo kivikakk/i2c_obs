@@ -19,28 +19,17 @@ int main(int argc, char **argv) {
   uint64_t time;
   vcd.sample(time++);
 
-  for (; time < 60;) {
+  for (; time < 80;) {
+    if (time % 5 == 0) {
+      top.p_scl__i.set(!top.p_scl__i);
+    }
+
     switch (time >> 1) {
-    case 0:
-      top.p_scl__i.set(true);
-      break;
     case 1:
       top.p_switch.set(true);
       break;
     case 2:
       top.p_switch.set(false);
-      break;
-    case 3:
-      top.p_scl__i.set(false);
-      break;
-    case 8:
-      top.p_scl__i.set(true);
-      break;
-    case 13:
-      top.p_scl__i.set(false);
-      break;
-    case 18:
-      top.p_scl__i.set(true);
       break;
     }
 

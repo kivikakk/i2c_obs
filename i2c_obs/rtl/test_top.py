@@ -14,19 +14,23 @@ class TestTop(sim.TestCase):
 
         yield dut.switch.eq(0)
 
-        for _ in range(2):
+        STRETCHES = [0, 0, 3, 3]
+        for ix, expected in enumerate(STRETCHES):
             yield dut.scl_i.eq(0)
-            yield
-            yield
-            yield
             yield
             yield
             yield
 
             yield dut.scl_i.eq(1)
             yield
-            yield
-            yield
-            yield
+            actual = 0
+            while (yield dut.scl_oe):
+                actual += 1
+                yield
+            self.assertEqual(
+                actual,
+                expected,
+                f"ix {ix} expected {expected} stretched cycles, got {actual}",
+            )
             yield
             yield

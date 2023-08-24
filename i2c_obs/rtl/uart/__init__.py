@@ -23,7 +23,7 @@ class UART(Component):
         self._baud = baud
         super().__init__()
         self._c = Counter(hz=self._baud)
-        self._fifo = SyncFIFO(width=8, depth=6)
+        self._fifo = SyncFIFO(width=8, depth=8)
         self._tx = Signal()
 
     def elaborate(self, platform: Optional[Platform]) -> Elaboratable:

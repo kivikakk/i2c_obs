@@ -36,13 +36,32 @@ class StartTrainingEvent(Event):
 
 
 class FinishTrainingEvent(Event):
-    _bus: int
+    _measurements: list[int]
 
-    def __init__(self, bus: int):
-        self._bus = bus
+    def __init__(self, measurements: list[int]):
+        super().__init__()
+        self._measurements = measurements
 
     def __str__(self):
-        return f"finish link training: bus speed {self._bus:,} Hz"
+        tLOW_0 = self._measurements[0]
+        tHIGH_0 = self._measurements[1]
+        tLOW_1 = self._measurements[2]
+        tCYCLE = tLOW_0 + tHIGH_0
+
+        return (
+            f"finish link training\n"
+            f"raw measurements: {self._measurements!r}\n"
+            f"tLOW_0:   1/{TARGET_SYSCLK//tLOW_0:,}s\n"
+            f"tHIGH_0:  1/{TARGET_SYSCLK//tHIGH_0:,}s\n"
+            f"tLOW_1:   1/{TARGET_SYSCLK//tLOW_1:,}s\n"
+            f"tLOW_0+tHIGH_0 = {TARGET_SYSCLK//tCYCLE:,}Hz ({tCYCLE} cycles)\n"
+            f"Duty: {tHIGH_0 * 100 / tCYCLE:.1f}%"
+        )
+
+
+class StartStretchingEvent(Event):
+    def __str__(self):
+        return "start stretching"
 
 
 class FinishStretchingEvent(Event):
@@ -62,10 +81,14 @@ class UnhandledEvent(Event):
         return f"unhandled data in {self._state}: {self._b!r}"
 
 
+# XXX
+TARGET_SYSCLK = 12_000_000
+
+
 class _Parser:
     _state: State
-    _count: list[int]
-    _bus: int
+    _nibbles: list[int]
+    _measurements: list[int]
 
     def __init__(self):
         self._state = State.IDLE
@@ -83,22 +106,29 @@ class _Parser:
                 match b:
                     case symbols.STRETCH_START:
                         self._state = State.TRAINING
-                        self._count = []
+                        self._nibbles = []
+                        self._measurements = []
                         return [StartTrainingEvent()]
                     case _:
                         return [UnhandledEvent(self._state, b)]
             case State.TRAINING:
                 match b:
                     case n if 0x00 <= n <= 0x0F:
-                        self._count.append(n)
+                        self._nibbles.append(n)
                         return []
                     case symbols.STRETCH_MEASURED:
-                        self._state = State.STRETCHING
-                        count = reduce(lambda a, n: (a << 4) | n, reversed(self._count))
-                        # XXX this depends on the target.
-                        period = 12_000_000 // count
-                        self._bus = period // 2
-                        return [FinishTrainingEvent(self._bus)]
+                        if not self._nibbles:
+                            self._state = State.STRETCHING
+                            return [
+                                FinishTrainingEvent(self._measurements),
+                                StartStretchingEvent(),
+                            ]
+                        count = reduce(
+                            lambda a, n: (a << 4) | n, reversed(self._nibbles)
+                        )
+                        self._measurements.append(count)
+                        self._nibbles = []
+                        return []
                     case symbols.STRETCH_FINISH:
                         self._state = State.IDLE
                         return [FinishStretchingEvent()]
