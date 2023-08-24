@@ -20,11 +20,11 @@
     "amaranth": {
       "flake": false,
       "locked": {
-        "lastModified": 1692670993,
-        "narHash": "sha256-hAkil8p2pV9jKcaj+rJHOG3valWY1cMlsf2IT4Y3kso=",
+        "lastModified": 1692846128,
+        "narHash": "sha256-7rr/BSzS8vQV97zCAMPsm0cFJFFh0VNY6+l6Z3Q7dT4=",
         "owner": "charlottia",
         "repo": "amaranth",
-        "rev": "52c0caf724104405d9dffe1d1f00d39e5a040468",
+        "rev": "325253b127e3605f791015f4790cf653fbd3e994",
         "type": "github"
       },
       "original": {
@@ -86,11 +86,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1689068808,
-        "narHash": "sha256-6ixXo3wt24N/melDWjq70UuHQLxGV8jZvooRanIHXw0=",
+        "lastModified": 1692799911,
+        "narHash": "sha256-3eihraek4qL744EvQXsK1Ha6C3CR7nnT8X2qWap4RNk=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "919d646de7be200f3bf08cb76ae1f09402b6f9b4",
+        "rev": "f9e7cf818399d17d347f847525c5a5a8032e4e44",
         "type": "github"
       },
       "original": {
