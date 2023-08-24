@@ -135,6 +135,16 @@ class Top(Component):
 
             with m.State("MEASURE: PRE"):
                 with m.If(~self.scl_i & (self.scl_i != scl_last)):
+                    # Measurement starts at 0 in the cycle we see SCL drop,
+                    # and is incremented every cycle thereafter until **and including**
+                    # the cycle in which we notice SCL rise again.
+                    #
+                    #       |      |      |      |
+                    # --    |      |      |    __|
+                    #   \   |      |      |   /  |
+                    #    \__|______|______|__/   |
+                    #       |      |      |      |
+                    #        =0     =1     =2     =3
                     m.d.sync += measured_count.eq(0)
                     m.next = "MEASURE: COUNT"
                 with m.If(button_up):
@@ -145,8 +155,8 @@ class Top(Component):
                 with m.If(self.scl_i != scl_last):
                     if platform.simulation:
                         m.d.comb += Assert(self.scl_i)
-                        m.d.sync += Display("Measured count: {0:d}", measured_count)
-                    m.d.sync += measured_count_report.eq(measured_count)
+                        m.d.sync += Display("Measured count: {0:d}", measured_count + 1)
+                    m.d.sync += measured_count_report.eq(measured_count + 1)
                     m.next = "HIGH: WAIT"
                 with m.If(button_up):
                     m.next = "FISH"
