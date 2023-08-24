@@ -115,9 +115,9 @@ class Top(Component):
         m.d.sync += scl_last.eq(self.scl_i)
 
         freq = cast(int, platform.default_clk_frequency)
-        counter_max = int(freq // 100_000) + 1
-        measured_count = Signal(range(counter_max))
-        timer_count = Signal(len(measured_count) * 2)  # XXX
+        counter_max = int(freq // 100_000)
+        # We wait for sum of 2 measurements.
+        timer_count = Signal(range(counter_max * 2 + 1))
 
         # Measurement starts at 1 in the cycle we see SCL drop, and is
         # incremented every cycle thereafter as long as SCL is stable;
@@ -131,7 +131,7 @@ class Top(Component):
         #        a1     a2     a3     b1     b2     b3     c1     c2     c3
         N_MEASUREMENTS = 3
         measurements = Array(
-            [Signal(range(counter_max)) for _ in range(N_MEASUREMENTS)]
+            [Signal(range(counter_max + 1)) for _ in range(N_MEASUREMENTS)]
         )
         measure_ix = Signal(range(N_MEASUREMENTS))
         measures_sent = Signal(range(N_MEASUREMENTS))
