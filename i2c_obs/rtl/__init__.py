@@ -135,38 +135,51 @@ class Top(Component):
 
             with m.State("MEASURE: PRE"):
                 with m.If(~self.scl_i & (self.scl_i != scl_last)):
-                    # Measurement starts at 0 in the cycle we see SCL drop,
-                    # and is incremented every cycle thereafter until **and including**
-                    # the cycle in which we notice SCL rise again.
+                    # Measurement starts at 1 in the cycle we see SCL drop,
+                    # and is incremented every cycle thereafter as long as
+                    # SCL is stable.
                     #
                     #       |      |      |      |
-                    # --    |      |      |    __|
-                    #   \   |      |      |   /  |
-                    #    \__|______|______|__/   |
+                    # ___   |      |      |     _|
+                    #    \  |      |      |    / |
+                    #     \_|______|______|___/  |
                     #       |      |      |      |
-                    #        =0     =1     =2     =3
-                    m.d.sync += measured_count.eq(0)
+                    #        =1     =2     =3      3
+                    m.d.sync += measured_count.eq(1)
                     m.next = "MEASURE: COUNT"
                 with m.If(button_up):
                     m.next = "FISH"
 
             with m.State("MEASURE: COUNT"):
-                m.d.sync += measured_count.eq(measured_count + 1)
-                with m.If(self.scl_i != scl_last):
+                with m.If(self.scl_i == scl_last):
+                    m.d.sync += measured_count.eq(measured_count + 1)
+                with m.Else():
                     if platform.simulation:
                         m.d.comb += Assert(self.scl_i)
-                        m.d.sync += Display("Measured count: {0:d}", measured_count + 1)
-                    m.d.sync += measured_count_report.eq(measured_count + 1)
+                        m.d.sync += Display("Measured count: {0:d}", measured_count)
+                    m.d.sync += measured_count_report.eq(measured_count)
                     m.next = "HIGH: WAIT"
                 with m.If(button_up):
                     m.next = "FISH"
 
             with m.State("HIGH: WAIT"):
-                # Falling edge on SCL, hold it low ourselves for an extra whole period.
+                # Stretching counting starts when we detect SCL go low: we
+                # record the number of additional cycles to be held after this
+                # one, which will equal zero on the cycle we need to relax.
+                #
+                #       |      |      |      |      |      |      |
+                # ___   |      |      |      |      |      |     _|
+                #    \  |      |      |      |      |      |    / |
+                #     \_|______|______|______|______|______|___/  |
+                #       |      |      |      |      |      |      |
+                #        =4     =3     =2     =1     =0     0
+                #
+                # The initial value is therefore the desired tLOW cycle count
+                # minus two.
                 with m.If(self.scl_i != scl_last):
                     if platform.simulation:
                         m.d.comb += Assert(~self.scl_i)
-                    m.d.sync += timer_count.eq(2 * measured_count - 1)
+                    m.d.sync += timer_count.eq(2 * measured_count - 2)
                     m.next = "LOW: HOLD"
                 with m.If(button_up):
                     m.next = "FISH"
