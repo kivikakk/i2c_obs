@@ -45,6 +45,7 @@
             black
             isort
             python-lsp-server
+            pyserial
             ;
 
           inherit

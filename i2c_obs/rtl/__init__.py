@@ -8,7 +8,7 @@ from amaranth_boards.resources import I2CResource
 
 from ..platform import Platform, icebreaker, orangecrab
 from .common import ButtonWithHold, Hz
-from .uart import UART
+from .uart import UART, symbols
 
 __all__ = ["Top"]
 
@@ -128,7 +128,7 @@ class Top(Component):
             with m.State("IDLE"):
                 with m.If(button_up):
                     m.d.sync += [
-                        uart.wr_data.eq(0xFF),
+                        uart.wr_data.eq(symbols.STRETCH_START),
                         uart.wr_en.eq(1),
                     ]
                     m.next = "MEASURE: PRE"
@@ -146,7 +146,7 @@ class Top(Component):
                     if platform.simulation:
                         m.d.comb += Assert(self.scl_i)
                         m.d.sync += Display("Measured count: {0:d}", measured_count)
-                    m.d.sync += measured_count_report.eq(measured_count + 1)
+                    m.d.sync += measured_count_report.eq(measured_count)
                     m.next = "HIGH: WAIT"
                 with m.If(button_up):
                     m.next = "FISH"
@@ -177,16 +177,24 @@ class Top(Component):
 
             with m.State("FISH"):
                 m.d.sync += [
-                    uart.wr_data.eq(0xFE),
+                    uart.wr_data.eq(symbols.STRETCH_FINISH),
                     uart.wr_en.eq(1),
                 ]
                 m.next = "IDLE"
 
+        writing_measured_count = Signal()
+        m.d.sync += writing_measured_count.eq(0)
         with m.If(measured_count_report != 0):
             m.d.sync += [
                 uart.wr_data.eq(measured_count_report[:4]),
                 uart.wr_en.eq(1),
                 measured_count_report.eq(measured_count_report >> 4),
+                writing_measured_count.eq(1),
+            ]
+        with m.Elif(writing_measured_count):
+            m.d.sync += [
+                uart.wr_data.eq(symbols.STRETCH_MEASURED),
+                uart.wr_en.eq(1),
             ]
 
         return m

@@ -4,8 +4,8 @@ from amaranth import C, Cat, Elaboratable, Module, Signal
 from amaranth.lib.fifo import SyncFIFO
 from amaranth.lib.wiring import Component, Out
 
-from ..platform import Platform, icebreaker
-from .common import Counter
+from ...platform import Platform, icebreaker
+from ..common import Counter
 
 __all__ = ["UART"]
 
