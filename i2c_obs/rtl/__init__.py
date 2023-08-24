@@ -115,7 +115,7 @@ class Top(Component):
         m.d.sync += scl_last.eq(self.scl_i)
 
         freq = cast(int, platform.default_clk_frequency)
-        counter_max = int(freq // 100_000)
+        counter_max = int(freq // 10_000)
         # We wait for sum of 2 measurements.
         timer_count = Signal(range(counter_max * 2 + 1))
 

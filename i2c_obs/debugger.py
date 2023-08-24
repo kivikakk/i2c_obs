@@ -130,6 +130,7 @@ class _Parser:
                         self._nibbles = []
                         return []
                     case symbols.STRETCH_FINISH:
+                        print(f"finish mid-training; nibbles {self._nibbles!r} measurements {self._measurements!r}")
                         self._state = State.IDLE
                         return [FinishStretchingEvent()]
                     case _:
