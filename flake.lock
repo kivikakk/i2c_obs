@@ -20,11 +20,11 @@
     "amaranth": {
       "flake": false,
       "locked": {
-        "lastModified": 1695894708,
-        "narHash": "sha256-E0rVXho4qPmWK1AQ46628N6vel1UMs7WoLFg1LwmXsQ=",
-        "owner": "amaranth-lang",
+        "lastModified": 1696734843,
+        "narHash": "sha256-eRZO2he6Yxls/ckfTWgi8rykr58wL8iDy3/urzeBr9I=",
+        "owner": "charlottia",
         "repo": "amaranth",
-        "rev": "0c3ada62503359900f185a9b2d8f122b2d952013",
+        "rev": "a1d444a34df7d2c032ee24c5bdf7d0002b803e93",
         "type": "github"
       },
       "original": {
