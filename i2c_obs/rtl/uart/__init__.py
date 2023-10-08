@@ -32,7 +32,7 @@ class UART(Component):
         match platform:
             case icebreaker():
                 uart = platform.request("uart")
-                m.d.comb += uart.tx.eq(self._tx)
+                m.d.comb += uart.tx.o.eq(self._tx)
 
             case _:
                 pass

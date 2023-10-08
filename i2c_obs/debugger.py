@@ -1,3 +1,4 @@
+import os
 from abc import ABC
 from argparse import ArgumentParser, Namespace
 from enum import Enum
@@ -11,11 +12,13 @@ __all__ = ["add_main_arguments"]
 
 
 def add_main_arguments(parser: ArgumentParser):
+    MAC_ICEBREAKER = "/dev/tty.usbserial-ibEt3maU1"
+
     parser.set_defaults(func=main)
     parser.add_argument(
         "uart",
         nargs="?",
-        default="/dev/ttyUSB1",
+        default=MAC_ICEBREAKER if os.path.exists(MAC_ICEBREAKER) else "/dev/ttyUSB1",
         help="UART interface",
     )
 
@@ -130,7 +133,9 @@ class _Parser:
                         self._nibbles = []
                         return []
                     case symbols.STRETCH_FINISH:
-                        print(f"finish mid-training; nibbles {self._nibbles!r} measurements {self._measurements!r}")
+                        print(
+                            f"finish mid-training; nibbles {self._nibbles!r} measurements {self._measurements!r}"
+                        )
                         self._state = State.IDLE
                         return [FinishStretchingEvent()]
                     case _:
@@ -146,8 +151,11 @@ class _Parser:
 
 def main(args: Namespace):
     # TODO configurable serial port.
-    with Serial(args.uart) as ser:
-        parser = _Parser()
-        while True:
-            for event in parser.feed([ser.read()]):
-                print("*", event)
+    try:
+        with Serial(args.uart) as ser:
+            parser = _Parser()
+            while True:
+                for event in parser.feed([ser.read()]):
+                    print("*", event)
+    except KeyboardInterrupt:
+        pass
