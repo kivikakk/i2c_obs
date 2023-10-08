@@ -7,8 +7,7 @@
       url = github:edolstra/flake-compat;
       flake = false;
     };
-    hdx.url = github:charlottia/hdx?ref=v0.1;
-    hdx.inputs.amaranth.url = github:charlottia/amaranth?ref=wip;
+    hdx.url = github:charlottia/hdx?ref=v0.2;
   };
 
   outputs = inputs @ {
