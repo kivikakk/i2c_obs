@@ -3,6 +3,7 @@ from typing import Final, cast
 from amaranth import Array, Elaboratable, Module, Mux, Signal
 from amaranth.build import Attrs
 from amaranth.hdl.ast import Assert, Display
+from amaranth.lib.cdc import FFSynchronizer
 from amaranth.lib.wiring import Component, In, Out
 from amaranth_boards.resources import I2CResource
 
@@ -70,10 +71,15 @@ class Top(Component):
                     ]
                 )
                 i2c = platform.request("i2c")
+
+                if False:
+                    m.submodules += FFSynchronizer(i2c.scl.i, self.scl_i)
+                else:
+                    m.d.comb += self.scl_i.eq(i2c.scl.i)
+
                 m.d.comb += [
                     i2c.scl.oe.eq(self.scl_oe),
                     i2c.scl.o.eq(self.scl_o),
-                    self.scl_i.eq(i2c.scl.i),
                 ]
 
                 plat_uart = platform.request("uart")
