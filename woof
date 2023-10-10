@@ -1,4 +1,7 @@
-pyright &&
-	isort --profile black --nlb LOCALFOLDER i2c_obs &&
-	black i2c_obs &&
-	clang-format -i cxxsim/main.cc
+#!/usr/bin/env sh
+
+isort --profile black --nlb LOCALFOLDER i2c_obs
+black i2c_obs
+clang-format -i cxxsim/main.cc
+
+exec pyright

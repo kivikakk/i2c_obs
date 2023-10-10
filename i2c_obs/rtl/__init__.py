@@ -44,14 +44,14 @@ class Top(Component):
     def elaborate(self, platform: Platform) -> Elaboratable:
         m = Module()
 
+        freq = cast(int, platform.default_clk_frequency)
+
         m.submodules.button = ButtonWithHold()
         m.d.comb += m.submodules.button.i.eq(self.switch)
         button_up = m.submodules.button.up
 
-        m.submodules.uart = uart = UART()
+        plat_uart = None
 
-        # I've removed the pull-up resistors here since they should
-        # be provided by the controller.
         match platform:
             case icebreaker():
                 m.d.comb += [
@@ -75,6 +75,8 @@ class Top(Component):
                     i2c.scl.o.eq(self.scl_o),
                     self.scl_i.eq(i2c.scl.i),
                 ]
+
+                plat_uart = platform.request("uart")
 
             case orangecrab():
                 m.d.comb += [
@@ -105,7 +107,8 @@ class Top(Component):
             case _:
                 button_up = self.switch
 
-        # Not stretching by default.
+        m.submodules.uart = uart = UART(plat_uart)
+
         m.d.comb += [
             self.scl_o.eq(0),
             self.scl_oe.eq(0),
@@ -114,7 +117,6 @@ class Top(Component):
         scl_last = Signal()
         m.d.sync += scl_last.eq(self.scl_i)
 
-        freq = cast(int, platform.default_clk_frequency)
         counter_max = int(freq // 10_000)
         # We wait for sum of 2 measurements.
         timer_count = Signal(range(counter_max * 2 + 1))

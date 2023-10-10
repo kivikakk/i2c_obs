@@ -49,6 +49,22 @@
         "type": "github"
       }
     },
+    "amaranth-stdio": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1692725502,
+        "narHash": "sha256-t66oXE5aTEqrDZ1EyBN8lkRSrV6dc2XLP2+KLpAo99Q=",
+        "owner": "amaranth-lang",
+        "repo": "amaranth-stdio",
+        "rev": "bb39058bd956cf89379c7cde9404998476470a07",
+        "type": "github"
+      },
+      "original": {
+        "owner": "amaranth-lang",
+        "repo": "amaranth-stdio",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -120,6 +136,7 @@
         "abc": "abc",
         "amaranth": "amaranth",
         "amaranth-boards": "amaranth-boards",
+        "amaranth-stdio": "amaranth-stdio",
         "flake-compat": "flake-compat_2",
         "flake-utils": "flake-utils_2",
         "icestorm": "icestorm",
@@ -132,16 +149,15 @@
         "z3": "z3"
       },
       "locked": {
-        "lastModified": 1696295484,
-        "narHash": "sha256-kYpUPDZRXxkR+dpbyTMpgWrmXdvWqdldNhiFnO51e3I=",
+        "lastModified": 1696901972,
+        "narHash": "sha256-TWNeZSovhORt+HGpPULXIgTKbXP/0VKD4hs7eopQl64=",
         "owner": "charlottia",
         "repo": "hdx",
-        "rev": "bbe1d8ed0c8cf4d137d0da556fd025c3a14aa658",
+        "rev": "4c186bbb4ed97cb072b4418d5a8b4515c446880c",
         "type": "github"
       },
       "original": {
         "owner": "charlottia",
-        "ref": "v0.2",
         "repo": "hdx",
         "type": "github"
       }
