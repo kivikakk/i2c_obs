@@ -22,7 +22,7 @@
       "locked": {
         "lastModified": 1696734843,
         "narHash": "sha256-eRZO2he6Yxls/ckfTWgi8rykr58wL8iDy3/urzeBr9I=",
-        "owner": "charlottia",
+        "owner": "kivikakk",
         "repo": "amaranth",
         "rev": "a1d444a34df7d2c032ee24c5bdf7d0002b803e93",
         "type": "github"
@@ -149,15 +149,15 @@
         "z3": "z3"
       },
       "locked": {
-        "lastModified": 1696901972,
-        "narHash": "sha256-TWNeZSovhORt+HGpPULXIgTKbXP/0VKD4hs7eopQl64=",
-        "owner": "charlottia",
+        "lastModified": 1699340778,
+        "narHash": "sha256-6IGmdL9L9XbJBJCmwNGS1hi4/1MCT8+AfYH3l2iC/gk=",
+        "owner": "kivikakk",
         "repo": "hdx",
-        "rev": "4c186bbb4ed97cb072b4418d5a8b4515c446880c",
+        "rev": "e212afed03fc7800d51e8c35c3cc9206d95e7487",
         "type": "github"
       },
       "original": {
-        "owner": "charlottia",
+        "owner": "kivikakk",
         "repo": "hdx",
         "type": "github"
       }
