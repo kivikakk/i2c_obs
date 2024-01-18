@@ -1,4 +1,4 @@
-# i2c_obs
+# [i2c_obs](https://hrzn.ee/kivikakk/i2c_obs)
 
 I²C, oh! Big stretch.
 
